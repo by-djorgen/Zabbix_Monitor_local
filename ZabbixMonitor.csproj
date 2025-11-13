@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <AssemblyName>ZabbixMonitor</AssemblyName>
+    <RootNamespace>ZabbixMonitor</RootNamespace>
+  </PropertyGroup>
+
+  <!-- Иконка опциональна - добавьте файл icon.ico в корень проекта, если хотите использовать иконку -->
+  <Choose>
+    <When Condition="Exists('icon.ico')">
+      <PropertyGroup>
+        <ApplicationIcon>icon.ico</ApplicationIcon>
+      </PropertyGroup>
+      <ItemGroup>
+        <None Include="icon.ico">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2957.106" />
+  </ItemGroup>
+
+</Project>
+
