@@ -46,7 +46,9 @@ public sealed class StartForm : Form
         MaximizeBox = false;
         MinimizeBox = false;
         Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        ClientSize = new Size(620, 420);
+        ClientSize = new Size(680, 500);
+        MinimumSize = new Size(680, 500);
+        AutoScroll = true;
         Padding = new Padding(12);
 
         var rootLayout = new TableLayoutPanel
@@ -55,11 +57,11 @@ public sealed class StartForm : Form
             ColumnCount = 1,
             RowCount = 5
         };
-        rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 96F));
-        rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 146F));
-        rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 70F));
+        rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         rootLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-        rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 52F));
+        rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
         var profileGroup = new GroupBox
         {
@@ -213,7 +215,7 @@ public sealed class StartForm : Form
         rootLayout.Controls.Add(profileGroup, 0, 0);
         rootLayout.Controls.Add(startupGroup, 0, 1);
         rootLayout.Controls.Add(refreshGroup, 0, 2);
-        rootLayout.Controls.Add(new Panel { Dock = DockStyle.Fill }, 0, 3);
+        rootLayout.Controls.Add(new Panel { Dock = DockStyle.Fill, MinimumSize = new Size(1, 8) }, 0, 3);
         rootLayout.Controls.Add(actionsLayout, 0, 4);
         Controls.Add(rootLayout);
 

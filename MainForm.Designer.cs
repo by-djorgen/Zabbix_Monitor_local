@@ -18,9 +18,7 @@ namespace ZabbixMonitor
             this.components = new System.ComponentModel.Container();
             this.mainLayout = new System.Windows.Forms.TableLayoutPanel();
             this.topPanel = new System.Windows.Forms.Panel();
-            this.rightActionsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.openSettingsButton = new System.Windows.Forms.Button();
-            this.leftActionsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.fullscreenButton = new System.Windows.Forms.Button();
             this.refreshButton = new System.Windows.Forms.Button();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
@@ -61,32 +59,19 @@ namespace ZabbixMonitor
             // topPanel
             // 
             this.topPanel.BackColor = System.Drawing.Color.FromArgb(245, 246, 248);
-            this.topPanel.Controls.Add(this.rightActionsPanel);
-            this.topPanel.Controls.Add(this.leftActionsPanel);
+            this.topPanel.Controls.Add(this.openSettingsButton);
+            this.topPanel.Controls.Add(this.fullscreenButton);
+            this.topPanel.Controls.Add(this.refreshButton);
             this.topPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.topPanel.Location = new System.Drawing.Point(3, 3);
             this.topPanel.Name = "topPanel";
             this.topPanel.Size = new System.Drawing.Size(1394, 38);
             this.topPanel.TabIndex = 0;
             // 
-            // rightActionsPanel
-            // 
-            this.rightActionsPanel.AutoSize = true;
-            this.rightActionsPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.rightActionsPanel.Controls.Add(this.openSettingsButton);
-            this.rightActionsPanel.Dock = System.Windows.Forms.DockStyle.Right;
-            this.rightActionsPanel.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.rightActionsPanel.Location = new System.Drawing.Point(1278, 0);
-            this.rightActionsPanel.Name = "rightActionsPanel";
-            this.rightActionsPanel.Padding = new System.Windows.Forms.Padding(0, 5, 8, 0);
-            this.rightActionsPanel.Size = new System.Drawing.Size(116, 38);
-            this.rightActionsPanel.TabIndex = 1;
-            this.rightActionsPanel.WrapContents = false;
-            // 
             // openSettingsButton
             // 
-            this.openSettingsButton.Location = new System.Drawing.Point(3, 8);
-            this.openSettingsButton.Margin = new System.Windows.Forms.Padding(3, 3, 0, 3);
+            this.openSettingsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.openSettingsButton.Location = new System.Drawing.Point(1281, 6);
             this.openSettingsButton.Name = "openSettingsButton";
             this.openSettingsButton.Size = new System.Drawing.Size(105, 26);
             this.openSettingsButton.TabIndex = 2;
@@ -94,24 +79,9 @@ namespace ZabbixMonitor
             this.openSettingsButton.UseVisualStyleBackColor = true;
             this.openSettingsButton.Click += new System.EventHandler(this.openSettingsButton_Click);
             // 
-            // leftActionsPanel
-            // 
-            this.leftActionsPanel.AutoSize = true;
-            this.leftActionsPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.leftActionsPanel.Controls.Add(this.refreshButton);
-            this.leftActionsPanel.Controls.Add(this.fullscreenButton);
-            this.leftActionsPanel.Dock = System.Windows.Forms.DockStyle.Left;
-            this.leftActionsPanel.Location = new System.Drawing.Point(0, 0);
-            this.leftActionsPanel.Name = "leftActionsPanel";
-            this.leftActionsPanel.Padding = new System.Windows.Forms.Padding(8, 5, 0, 0);
-            this.leftActionsPanel.Size = new System.Drawing.Size(227, 38);
-            this.leftActionsPanel.TabIndex = 0;
-            this.leftActionsPanel.WrapContents = false;
-            // 
             // fullscreenButton
             // 
-            this.fullscreenButton.Location = new System.Drawing.Point(116, 8);
-            this.fullscreenButton.Margin = new System.Windows.Forms.Padding(6, 3, 0, 3);
+            this.fullscreenButton.Location = new System.Drawing.Point(123, 6);
             this.fullscreenButton.Name = "fullscreenButton";
             this.fullscreenButton.Size = new System.Drawing.Size(111, 26);
             this.fullscreenButton.TabIndex = 1;
@@ -121,8 +91,7 @@ namespace ZabbixMonitor
             // 
             // refreshButton
             // 
-            this.refreshButton.Location = new System.Drawing.Point(11, 8);
-            this.refreshButton.Margin = new System.Windows.Forms.Padding(3, 3, 0, 3);
+            this.refreshButton.Location = new System.Drawing.Point(9, 6);
             this.refreshButton.Name = "refreshButton";
             this.refreshButton.Size = new System.Drawing.Size(105, 26);
             this.refreshButton.TabIndex = 0;
@@ -242,8 +211,6 @@ namespace ZabbixMonitor
 
         private System.Windows.Forms.TableLayoutPanel mainLayout;
         private System.Windows.Forms.Panel topPanel;
-        private System.Windows.Forms.FlowLayoutPanel rightActionsPanel;
-        private System.Windows.Forms.FlowLayoutPanel leftActionsPanel;
         private System.Windows.Forms.Button refreshButton;
         private System.Windows.Forms.Button fullscreenButton;
         private System.Windows.Forms.Button openSettingsButton;
