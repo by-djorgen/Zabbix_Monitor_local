@@ -283,7 +283,9 @@ public partial class MainForm : Form
         WindowState = FormWindowState.Normal;
         Bounds = Screen.FromControl(this).Bounds;
         _isFullscreen = true;
-        fullscreenButton.Text = "Выход из Fullscreen";
+        topPanel.Visible = false;
+        statusStrip.Visible = false;
+        fullscreenButton.Text = "Окно";
     }
 
     private void ExitFullscreen()
@@ -297,7 +299,9 @@ public partial class MainForm : Form
         Bounds = _savedBounds;
         WindowState = _savedWindowState;
         _isFullscreen = false;
-        fullscreenButton.Text = "Fullscreen";
+        topPanel.Visible = true;
+        statusStrip.Visible = true;
+        fullscreenButton.Text = "Полный экран";
     }
 
     private void HideToTray()

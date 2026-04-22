@@ -18,11 +18,14 @@ namespace ZabbixMonitor
             this.components = new System.ComponentModel.Container();
             this.mainLayout = new System.Windows.Forms.TableLayoutPanel();
             this.topPanel = new System.Windows.Forms.Panel();
+            this.rightActionsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.openSettingsButton = new System.Windows.Forms.Button();
+            this.leftActionsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.fullscreenButton = new System.Windows.Forms.Button();
             this.refreshButton = new System.Windows.Forms.Button();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.statusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.statusSpring = new System.Windows.Forms.ToolStripStatusLabel();
             this.lastRefreshLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.webView = new Microsoft.Web.WebView2.WinForms.WebView2();
             this.trayIcon = new System.Windows.Forms.NotifyIcon(this.components);
@@ -57,41 +60,71 @@ namespace ZabbixMonitor
             // 
             // topPanel
             // 
-            this.topPanel.Controls.Add(this.openSettingsButton);
-            this.topPanel.Controls.Add(this.fullscreenButton);
-            this.topPanel.Controls.Add(this.refreshButton);
+            this.topPanel.BackColor = System.Drawing.Color.FromArgb(245, 246, 248);
+            this.topPanel.Controls.Add(this.rightActionsPanel);
+            this.topPanel.Controls.Add(this.leftActionsPanel);
             this.topPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.topPanel.Location = new System.Drawing.Point(3, 3);
             this.topPanel.Name = "topPanel";
             this.topPanel.Size = new System.Drawing.Size(1394, 38);
             this.topPanel.TabIndex = 0;
             // 
+            // rightActionsPanel
+            // 
+            this.rightActionsPanel.AutoSize = true;
+            this.rightActionsPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.rightActionsPanel.Controls.Add(this.openSettingsButton);
+            this.rightActionsPanel.Dock = System.Windows.Forms.DockStyle.Right;
+            this.rightActionsPanel.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
+            this.rightActionsPanel.Location = new System.Drawing.Point(1278, 0);
+            this.rightActionsPanel.Name = "rightActionsPanel";
+            this.rightActionsPanel.Padding = new System.Windows.Forms.Padding(0, 5, 8, 0);
+            this.rightActionsPanel.Size = new System.Drawing.Size(116, 38);
+            this.rightActionsPanel.TabIndex = 1;
+            this.rightActionsPanel.WrapContents = false;
+            // 
             // openSettingsButton
             // 
-            this.openSettingsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.openSettingsButton.Location = new System.Drawing.Point(1288, 6);
+            this.openSettingsButton.Location = new System.Drawing.Point(3, 8);
+            this.openSettingsButton.Margin = new System.Windows.Forms.Padding(3, 3, 0, 3);
             this.openSettingsButton.Name = "openSettingsButton";
-            this.openSettingsButton.Size = new System.Drawing.Size(98, 26);
+            this.openSettingsButton.Size = new System.Drawing.Size(105, 26);
             this.openSettingsButton.TabIndex = 2;
             this.openSettingsButton.Text = "Настройки";
             this.openSettingsButton.UseVisualStyleBackColor = true;
             this.openSettingsButton.Click += new System.EventHandler(this.openSettingsButton_Click);
             // 
+            // leftActionsPanel
+            // 
+            this.leftActionsPanel.AutoSize = true;
+            this.leftActionsPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.leftActionsPanel.Controls.Add(this.refreshButton);
+            this.leftActionsPanel.Controls.Add(this.fullscreenButton);
+            this.leftActionsPanel.Dock = System.Windows.Forms.DockStyle.Left;
+            this.leftActionsPanel.Location = new System.Drawing.Point(0, 0);
+            this.leftActionsPanel.Name = "leftActionsPanel";
+            this.leftActionsPanel.Padding = new System.Windows.Forms.Padding(8, 5, 0, 0);
+            this.leftActionsPanel.Size = new System.Drawing.Size(227, 38);
+            this.leftActionsPanel.TabIndex = 0;
+            this.leftActionsPanel.WrapContents = false;
+            // 
             // fullscreenButton
             // 
-            this.fullscreenButton.Location = new System.Drawing.Point(117, 6);
+            this.fullscreenButton.Location = new System.Drawing.Point(116, 8);
+            this.fullscreenButton.Margin = new System.Windows.Forms.Padding(6, 3, 0, 3);
             this.fullscreenButton.Name = "fullscreenButton";
-            this.fullscreenButton.Size = new System.Drawing.Size(103, 26);
+            this.fullscreenButton.Size = new System.Drawing.Size(111, 26);
             this.fullscreenButton.TabIndex = 1;
-            this.fullscreenButton.Text = "Fullscreen";
+            this.fullscreenButton.Text = "Полный экран";
             this.fullscreenButton.UseVisualStyleBackColor = true;
             this.fullscreenButton.Click += new System.EventHandler(this.fullscreenButton_Click);
             // 
             // refreshButton
             // 
-            this.refreshButton.Location = new System.Drawing.Point(9, 6);
+            this.refreshButton.Location = new System.Drawing.Point(11, 8);
+            this.refreshButton.Margin = new System.Windows.Forms.Padding(3, 3, 0, 3);
             this.refreshButton.Name = "refreshButton";
-            this.refreshButton.Size = new System.Drawing.Size(103, 26);
+            this.refreshButton.Size = new System.Drawing.Size(105, 26);
             this.refreshButton.TabIndex = 0;
             this.refreshButton.Text = "Обновить";
             this.refreshButton.UseVisualStyleBackColor = true;
@@ -102,6 +135,7 @@ namespace ZabbixMonitor
             this.statusStrip.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statusLabel,
+            this.statusSpring,
             this.lastRefreshLabel});
             this.statusStrip.Location = new System.Drawing.Point(0, 876);
             this.statusStrip.Name = "statusStrip";
@@ -114,8 +148,15 @@ namespace ZabbixMonitor
             this.statusLabel.Size = new System.Drawing.Size(68, 17);
             this.statusLabel.Text = "Готово";
             // 
+            // statusSpring
+            // 
+            this.statusSpring.Name = "statusSpring";
+            this.statusSpring.Size = new System.Drawing.Size(1177, 17);
+            this.statusSpring.Spring = true;
+            // 
             // lastRefreshLabel
             // 
+            this.lastRefreshLabel.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.lastRefreshLabel.Name = "lastRefreshLabel";
             this.lastRefreshLabel.Size = new System.Drawing.Size(140, 17);
             this.lastRefreshLabel.Text = "Последнее обновление: -";
@@ -201,11 +242,14 @@ namespace ZabbixMonitor
 
         private System.Windows.Forms.TableLayoutPanel mainLayout;
         private System.Windows.Forms.Panel topPanel;
+        private System.Windows.Forms.FlowLayoutPanel rightActionsPanel;
+        private System.Windows.Forms.FlowLayoutPanel leftActionsPanel;
         private System.Windows.Forms.Button refreshButton;
         private System.Windows.Forms.Button fullscreenButton;
         private System.Windows.Forms.Button openSettingsButton;
         private System.Windows.Forms.StatusStrip statusStrip;
         private System.Windows.Forms.ToolStripStatusLabel statusLabel;
+        private System.Windows.Forms.ToolStripStatusLabel statusSpring;
         private System.Windows.Forms.ToolStripStatusLabel lastRefreshLabel;
         private Microsoft.Web.WebView2.WinForms.WebView2 webView;
         private System.Windows.Forms.NotifyIcon trayIcon;

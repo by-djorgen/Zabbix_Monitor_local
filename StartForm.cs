@@ -23,6 +23,8 @@ public sealed class StartForm : Form
     private readonly CheckBox _startWithWindowsCheckBox = new();
     private readonly Button _openButton = new();
     private readonly Button _deleteProfileButton = new();
+    private readonly Button _cancelButton = new();
+    private readonly Label _refreshLabel = new();
 
     public LaunchOptions? Result { get; private set; }
 
@@ -37,109 +39,187 @@ public sealed class StartForm : Form
 
     private void InitializeForm()
     {
-        Text = "Zabbix Monitor - Start";
+        Text = "Zabbix Monitor";
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         AutoScaleMode = AutoScaleMode.Dpi;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(560, 360);
+        Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+        ClientSize = new Size(620, 420);
+        Padding = new Padding(12);
 
-        var titleLabel = new Label
+        var rootLayout = new TableLayoutPanel
         {
-            Text = "Адрес Zabbix",
-            AutoSize = true,
-            Location = new Point(20, 20)
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 5
         };
+        rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 96F));
+        rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 146F));
+        rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 70F));
+        rootLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 52F));
 
-        _urlComboBox.Location = new Point(20, 45);
-        _urlComboBox.Width = 440;
-        _urlComboBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        var profileGroup = new GroupBox
+        {
+            Dock = DockStyle.Fill,
+            Text = "URL и профили",
+            Padding = new Padding(10, 12, 10, 10)
+        };
+        var profileLayout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 2,
+            RowCount = 3
+        };
+        profileLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        profileLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110F));
+        profileLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        profileLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));
+        profileLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+        var urlLabel = new Label
+        {
+            Text = "Адрес Zabbix:",
+            AutoSize = true,
+            Anchor = AnchorStyles.Left
+        };
+        profileLayout.SetColumnSpan(urlLabel, 2);
+
+        _urlComboBox.Dock = DockStyle.Fill;
         _urlComboBox.DropDownStyle = ComboBoxStyle.DropDown;
+        _urlComboBox.TabIndex = 0;
 
         _deleteProfileButton.Text = "Удалить";
-        _deleteProfileButton.Location = new Point(470, 43);
-        _deleteProfileButton.Size = new Size(75, 28);
-        _deleteProfileButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        _deleteProfileButton.Dock = DockStyle.Fill;
+        _deleteProfileButton.TabIndex = 1;
         _deleteProfileButton.Click += (_, _) => DeleteSelectedProfile();
 
-        _rememberAddressCheckBox.Text = "Запомнить адрес";
-        _rememberAddressCheckBox.Location = new Point(20, 88);
+        _rememberAddressCheckBox.Text = "Запомнить адрес в профилях";
         _rememberAddressCheckBox.AutoSize = true;
+        _rememberAddressCheckBox.Dock = DockStyle.Left;
         _rememberAddressCheckBox.Checked = true;
+        _rememberAddressCheckBox.TabIndex = 2;
+
+        profileLayout.Controls.Add(urlLabel, 0, 0);
+        profileLayout.Controls.Add(_urlComboBox, 0, 1);
+        profileLayout.Controls.Add(_deleteProfileButton, 1, 1);
+        profileLayout.Controls.Add(_rememberAddressCheckBox, 0, 2);
+        profileGroup.Controls.Add(profileLayout);
+
+        var startupGroup = new GroupBox
+        {
+            Dock = DockStyle.Fill,
+            Text = "Режим запуска",
+            Padding = new Padding(10, 10, 10, 8)
+        };
+        var startupLayout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 5
+        };
+        for (int i = 0; i < 5; i++)
+        {
+            startupLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        }
 
         _autoStartWithLastUrlCheckBox.Text = "Автозапуск с последним адресом";
-        _autoStartWithLastUrlCheckBox.Location = new Point(20, 118);
         _autoStartWithLastUrlCheckBox.AutoSize = true;
+        _autoStartWithLastUrlCheckBox.TabIndex = 3;
 
-        _startFullscreenCheckBox.Text = "Запуск в полноэкранном режиме";
-        _startFullscreenCheckBox.Location = new Point(20, 148);
+        _startFullscreenCheckBox.Text = "Открывать в полноэкранном режиме";
         _startFullscreenCheckBox.AutoSize = true;
-
-        _autoRefreshCheckBox.Text = "Автообновление";
-        _autoRefreshCheckBox.Location = new Point(20, 178);
-        _autoRefreshCheckBox.AutoSize = true;
-        _autoRefreshCheckBox.CheckedChanged += (_, _) => UpdateRefreshControlsState();
-
-        var refreshLabel = new Label
-        {
-            Text = "Интервал (сек):",
-            AutoSize = true,
-            Location = new Point(180, 180)
-        };
-
-        _refreshIntervalNumeric.Location = new Point(280, 176);
-        _refreshIntervalNumeric.Minimum = 10;
-        _refreshIntervalNumeric.Maximum = 3600;
-        _refreshIntervalNumeric.Width = 100;
+        _startFullscreenCheckBox.TabIndex = 4;
 
         _launchMinimizedCheckBox.Text = "Запускать свернутым в трей";
-        _launchMinimizedCheckBox.Location = new Point(20, 208);
         _launchMinimizedCheckBox.AutoSize = true;
+        _launchMinimizedCheckBox.TabIndex = 5;
 
         _minimizeToTrayCheckBox.Text = "Сворачивать окно в трей";
-        _minimizeToTrayCheckBox.Location = new Point(20, 238);
         _minimizeToTrayCheckBox.AutoSize = true;
+        _minimizeToTrayCheckBox.TabIndex = 6;
 
-        _startWithWindowsCheckBox.Text = "Запускать с Windows";
-        _startWithWindowsCheckBox.Location = new Point(20, 268);
+        _startWithWindowsCheckBox.Text = "Запускать вместе с Windows";
         _startWithWindowsCheckBox.AutoSize = true;
+        _startWithWindowsCheckBox.TabIndex = 7;
 
-        _openButton.Text = "Открыть";
-        _openButton.Size = new Size(120, 34);
-        _openButton.Location = new Point(425, 305);
-        _openButton.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
-        _openButton.Click += (_, _) => OpenClicked();
+        startupLayout.Controls.Add(_autoStartWithLastUrlCheckBox, 0, 0);
+        startupLayout.Controls.Add(_startFullscreenCheckBox, 0, 1);
+        startupLayout.Controls.Add(_launchMinimizedCheckBox, 0, 2);
+        startupLayout.Controls.Add(_minimizeToTrayCheckBox, 0, 3);
+        startupLayout.Controls.Add(_startWithWindowsCheckBox, 0, 4);
+        startupGroup.Controls.Add(startupLayout);
 
-        var cancelButton = new Button
+        var refreshGroup = new GroupBox
         {
-            Text = "Отмена",
-            Size = new Size(120, 34),
-            Location = new Point(290, 305),
-            Anchor = AnchorStyles.Right | AnchorStyles.Bottom,
-            DialogResult = DialogResult.Cancel
+            Dock = DockStyle.Fill,
+            Text = "Обновление",
+            Padding = new Padding(10, 10, 10, 8)
+        };
+        var refreshLayout = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            WrapContents = false,
+            AutoSize = false,
+            FlowDirection = FlowDirection.LeftToRight
         };
 
-        Controls.AddRange(
-        [
-            titleLabel,
-            _urlComboBox,
-            _deleteProfileButton,
-            _rememberAddressCheckBox,
-            _autoStartWithLastUrlCheckBox,
-            _startFullscreenCheckBox,
-            _autoRefreshCheckBox,
-            refreshLabel,
-            _refreshIntervalNumeric,
-            _launchMinimizedCheckBox,
-            _minimizeToTrayCheckBox,
-            _startWithWindowsCheckBox,
-            _openButton,
-            cancelButton
-        ]);
+        _autoRefreshCheckBox.Text = "Автообновление";
+        _autoRefreshCheckBox.AutoSize = true;
+        _autoRefreshCheckBox.Margin = new Padding(0, 6, 16, 0);
+        _autoRefreshCheckBox.TabIndex = 8;
+        _autoRefreshCheckBox.CheckedChanged += (_, _) => UpdateRefreshControlsState();
+
+        _refreshLabel.Text = "Интервал (сек):";
+        _refreshLabel.AutoSize = true;
+        _refreshLabel.Margin = new Padding(0, 6, 8, 0);
+
+        _refreshIntervalNumeric.Minimum = 10;
+        _refreshIntervalNumeric.Maximum = 3600;
+        _refreshIntervalNumeric.Width = 90;
+        _refreshIntervalNumeric.TabIndex = 9;
+
+        refreshLayout.Controls.Add(_autoRefreshCheckBox);
+        refreshLayout.Controls.Add(_refreshLabel);
+        refreshLayout.Controls.Add(_refreshIntervalNumeric);
+        refreshGroup.Controls.Add(refreshLayout);
+
+        _openButton.Text = "Открыть";
+        _openButton.Size = new Size(140, 32);
+        _openButton.BackColor = Color.FromArgb(33, 115, 70);
+        _openButton.ForeColor = Color.White;
+        _openButton.FlatStyle = FlatStyle.Flat;
+        _openButton.FlatAppearance.BorderSize = 0;
+        _openButton.TabIndex = 10;
+        _openButton.Click += (_, _) => OpenClicked();
+
+        _cancelButton.Text = "Отмена";
+        _cancelButton.Size = new Size(120, 32);
+        _cancelButton.DialogResult = DialogResult.Cancel;
+        _cancelButton.TabIndex = 11;
+
+        var actionsLayout = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.RightToLeft,
+            WrapContents = false,
+            Padding = new Padding(0, 6, 0, 0)
+        };
+        actionsLayout.Controls.Add(_openButton);
+        actionsLayout.Controls.Add(_cancelButton);
+
+        rootLayout.Controls.Add(profileGroup, 0, 0);
+        rootLayout.Controls.Add(startupGroup, 0, 1);
+        rootLayout.Controls.Add(refreshGroup, 0, 2);
+        rootLayout.Controls.Add(new Panel { Dock = DockStyle.Fill }, 0, 3);
+        rootLayout.Controls.Add(actionsLayout, 0, 4);
+        Controls.Add(rootLayout);
 
         AcceptButton = _openButton;
-        CancelButton = cancelButton;
+        CancelButton = _cancelButton;
+        Shown += (_, _) => _urlComboBox.Focus();
     }
 
     private void LoadSettingsToUi()
@@ -160,7 +240,12 @@ public sealed class StartForm : Form
         UpdateRefreshControlsState();
     }
 
-    private void UpdateRefreshControlsState() => _refreshIntervalNumeric.Enabled = _autoRefreshCheckBox.Checked;
+    private void UpdateRefreshControlsState()
+    {
+        bool enabled = _autoRefreshCheckBox.Checked;
+        _refreshIntervalNumeric.Enabled = enabled;
+        _refreshLabel.Enabled = enabled;
+    }
 
     private void DeleteSelectedProfile()
     {
@@ -185,8 +270,8 @@ public sealed class StartForm : Form
         if (!UrlValidator.TryNormalizeHttpUrl(_urlComboBox.Text, out string? normalizedUrl))
         {
             MessageBox.Show(
-                "Указан некорректный URL. Введите адрес в формате http://... или https://...",
-                "Некорректный URL",
+                "Введите корректный адрес в формате http://... или https://...",
+                "Некорректный адрес",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);
             return;
