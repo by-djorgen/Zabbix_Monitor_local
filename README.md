@@ -1,77 +1,75 @@
 # Zabbix Monitor Viewer
 
-Простая программа на C# для просмотра Zabbix монитора.
+Windows-приложение на C# / .NET 8 для безопасного и стабильного просмотра Zabbix через Microsoft Edge WebView2.
+
+## Возможности
+
+- Стартовое окно с URL, профилями и параметрами запуска.
+- Сохранение настроек между перезапусками:
+  - последний URL;
+  - список профилей;
+  - автозапуск с последним URL;
+  - fullscreen по умолчанию;
+  - автообновление и интервал;
+  - запуск свернутым в трей;
+  - запуск с Windows.
+- Автообновление страницы с защитой от refresh во время загрузки.
+- Ручное обновление (кнопка, `F5`, `Ctrl+R`) и отображение времени последнего обновления.
+- Управление fullscreen (`F11`, `Esc`).
+- Трей-режим с контекстным меню: открыть, обновить, настройки, выйти.
+- Усиленная политика безопасности навигации:
+  - whitelist по доменам профилей;
+  - блок новых окон/попапов;
+  - блок скачивания файлов;
+  - логирование заблокированных действий.
+- Понятная обработка ошибок (URL, WebView2 runtime, ошибки загрузки и сертификатов, сбои WebView2).
+- Файловое логирование ключевых событий и ошибок.
 
 ## Требования
 
-- .NET 8.0 SDK или выше
-- Visual Studio 2022 или Visual Studio Code (с расширением C#)
-- Microsoft Edge WebView2 Runtime (обычно устанавливается автоматически с Windows или можно скачать с https://developer.microsoft.com/microsoft-edge/webview2/)
+- Windows 10/11
+- .NET 8 SDK (для сборки)
+- Microsoft Edge WebView2 Runtime
 
-## Добавление иконки
+WebView2 Runtime: [официальная страница загрузки](https://developer.microsoft.com/microsoft-edge/webview2/)
 
-Для добавления иконки Zabbix к приложению:
+## Запуск в разработке
 
-1. **Скачайте иконку Zabbix** в формате `.ico`:
-   - Можно использовать официальный логотип Zabbix
-   - Или скачать с ресурсов: https://www.iconfinder.com/search?q=zabbix или https://icons8.com/icons/set/zabbix
-   - Конвертируйте PNG в ICO, если нужно (можно использовать онлайн-конвертеры)
-
-2. **Поместите файл** `icon.ico` в корневую папку проекта (рядом с `ZabbixMonitor.csproj`)
-
-3. **Пересоберите проект** - иконка будет автоматически включена в приложение
-
-Примечание: Если файл `icon.ico` отсутствует, приложение будет работать без иконки (используется стандартная иконка Windows).
-
-## Сборка и запуск
-
-### Через Visual Studio:
-1. Откройте файл `ZabbixMonitor.csproj` в Visual Studio
-2. Нажмите F5 для запуска или Ctrl+Shift+B для сборки
-
-### Через командную строку:
 ```bash
-# Восстановление зависимостей (если нужно)
 dotnet restore
-
-# Сборка проекта
-dotnet build
-
-# Запуск приложения
 dotnet run
-
-# Сборка исполняемого файла (.exe)
-
-## Вариант 1: Один файл (рекомендуется)
-```bash
-dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
-## Вариант 2: Один файл без зависимостей (требует установленный .NET Runtime)
+## Сборка
+
 ```bash
-dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true
+dotnet build -c Release
 ```
 
-## Вариант 3: С зависимостями (папка с файлами)
+## Публикация
+
+### Single-file self-contained (рекомендуется)
+
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
-После сборки исполняемый файл `ZabbixMonitor.exe` будет находиться в папке:
-- **Вариант 1 и 2**: `bin\Release\net8.0-windows\win-x64\publish\ZabbixMonitor.exe`
-- **Вариант 3**: `bin\Release\net8.0-windows\win-x64\publish\`
+### Single-file framework-dependent
 
-### Примечания:
-- **Вариант 1** создает один большой .exe файл со всеми зависимостями (~100-150 МБ), который можно запускать на любом Windows компьютере без установки .NET
-- **Вариант 2** создает один .exe файл (~5-10 МБ), но требует установленный .NET 8.0 Runtime на целевом компьютере
-- **Вариант 3** создает папку с несколькими файлами, включая .exe и все зависимости
+```bash
+dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
+```
 
-## Особенности
+Результат: `bin/Release/net8.0-windows/win-x64/publish/ZabbixMonitor.exe`
 
-- При запуске запрашивает адрес Zabbix (подстановкой служит `https://`, можно заменить на нужный)
-- Блокирует навигацию за пределы домена указанного адреса
-- Блокирует открытие внешних ссылок в новых окнах
-- Приложение открывается в полноэкранном режиме для удобного просмотра монитора
-- Использует Microsoft Edge WebView2 (Chromium) для отображения веб-контента
-- Поддерживает современные веб-стандарты и HTTPS сертификаты
+## Где хранятся данные приложения
+
+- Настройки: `%LocalAppData%/ZabbixMonitor/settings.json`
+- Логи: `%LocalAppData%/ZabbixMonitor/logs/`
+
+## Горячие клавиши
+
+- `F5` / `Ctrl+R` - обновить страницу
+- `F11` - включить/выключить fullscreen
+- `Esc` - выйти из fullscreen
 

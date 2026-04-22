@@ -4,9 +4,16 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>ZabbixMonitor</AssemblyName>
     <RootNamespace>ZabbixMonitor</RootNamespace>
+    <Company>Zabbix Monitor</Company>
+    <Product>Zabbix Monitor Viewer</Product>
+    <Description>Desktop WebView2 wrapper for secure Zabbix monitoring.</Description>
+    <Authors>Zabbix Monitor Team</Authors>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <!-- Иконка опциональна - добавьте файл icon.ico в корень проекта, если хотите использовать иконку -->

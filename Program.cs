@@ -1,60 +1,65 @@
 using System;
+using System.Threading;
 using System.Windows.Forms;
-using Microsoft.VisualBasic;
+using ZabbixMonitor.Models;
+using ZabbixMonitor.Services;
 
-namespace ZabbixMonitor
+namespace ZabbixMonitor;
+
+internal static class Program
 {
-    internal static class Program
+    [STAThread]
+    private static void Main()
     {
-        /// <summary>
-        /// Главная точка входа для приложения.
-        /// </summary>
-        [STAThread]
-        static void Main()
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+        Application.ThreadException += OnThreadException;
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+
+        FileLogger.Initialize();
+        FileLogger.Info("Application started.");
+
+        var settingsService = new SettingsService();
+        var appSettings = settingsService.Load();
+
+        if (appSettings.AutoStartWithLastUrl && UrlValidator.TryNormalizeHttpUrl(appSettings.LastUrl, out string? autoUrl))
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            var autoOptions = new LaunchOptions(
+                autoUrl!,
+                appSettings.StartInFullscreen,
+                appSettings.AutoRefreshEnabled,
+                appSettings.AutoRefreshIntervalSeconds,
+                appSettings.LaunchMinimizedToTray);
 
-            string? initialUrl = PromptForUrl();
-            if (string.IsNullOrWhiteSpace(initialUrl))
-            {
-                return;
-            }
-
-            Application.Run(new MainForm(initialUrl));
+            Application.Run(new MainForm(settingsService, appSettings, autoOptions));
+            return;
         }
 
-        private static string? PromptForUrl()
+        using var startForm = new StartForm(settingsService, appSettings);
+        if (startForm.ShowDialog() != DialogResult.OK || startForm.Result is null)
         {
-            const string defaultUrl = "https://";
-
-            while (true)
-            {
-                string input = Interaction.InputBox(
-                    "Введите адрес Zabbix, который нужно открыть при запуске:",
-                    "Адрес Zabbix",
-                    defaultUrl);
-
-                if (string.IsNullOrWhiteSpace(input))
-                {
-                    return null;
-                }
-
-                input = input.Trim();
-
-                if (Uri.TryCreate(input, UriKind.Absolute, out Uri? uri) &&
-                    (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
-                {
-                    return uri.ToString();
-                }
-
-                MessageBox.Show(
-                    "Указан некорректный URL. Пожалуйста, введите полный адрес, начинающийся с http:// или https://.",
-                    "Ошибка",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-            }
+            FileLogger.Info("Application closed from startup form.");
+            return;
         }
+
+        Application.Run(new MainForm(settingsService, appSettings, startForm.Result));
+    }
+
+    private static void OnThreadException(object sender, ThreadExceptionEventArgs e)
+    {
+        FileLogger.Error("Unhandled UI exception.", e.Exception);
+        MessageBox.Show(
+            $"Произошла непредвиденная ошибка:\n{e.Exception.Message}",
+            "Ошибка",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error);
+    }
+
+    private static void OnUnhandledException(object? sender, UnhandledExceptionEventArgs e)
+    {
+        Exception? ex = e.ExceptionObject as Exception;
+        FileLogger.Error("Unhandled non-UI exception.", ex);
     }
 }
 

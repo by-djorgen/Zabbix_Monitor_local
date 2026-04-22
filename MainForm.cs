@@ -1,239 +1,421 @@
 using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.WinForms;
+using ZabbixMonitor.Models;
+using ZabbixMonitor.Services;
 
-namespace ZabbixMonitor
+namespace ZabbixMonitor;
+
+public partial class MainForm : Form
 {
-    public partial class MainForm : Form
+    private readonly SettingsService _settingsService;
+    private readonly AppSettings _settings;
+    private NavigationPolicy _navigationPolicy;
+    private readonly Timer _refreshTimer = new();
+    private bool _isNavigating;
+    private bool _isBrowserReady;
+    private bool _isFullscreen;
+    private bool _isExitRequested;
+    private FormBorderStyle _savedBorderStyle;
+    private FormWindowState _savedWindowState;
+    private Rectangle _savedBounds;
+    private string _currentUrl;
+
+    public MainForm(SettingsService settingsService, AppSettings settings, LaunchOptions launchOptions)
     {
-        private const int REFRESH_INTERVAL_SECONDS = 30; // Интервал обновления в секундах (30 секунд)
-        
-        private readonly Uri baseUri;
-        private System.Windows.Forms.Timer? refreshTimer;
-        private bool isNavigating = false;
+        _settingsService = settingsService;
+        _settings = settings;
+        _currentUrl = launchOptions.Url;
+        _navigationPolicy = BuildNavigationPolicy(_currentUrl);
 
-        public MainForm() : this("about:blank")
-        {
-        }
+        InitializeComponent();
+        InitializeFormState();
+        InitializeRefreshTimer(launchOptions);
+        InitializeTray();
+        _ = InitializeBrowserAsync(launchOptions);
+    }
 
-        public MainForm(string initialUrl)
-        {
-            InitializeComponent();
-            baseUri = CreateBaseUri(initialUrl);
-            SetApplicationIcon();
-            ApplyDarkTheme();
-            InitializeRefreshTimer();
-            InitializeBrowser();
-        }
+    private void InitializeFormState()
+    {
+        Text = "Zabbix Monitor";
+        statusLabel.Text = "Инициализация WebView2...";
+        lastRefreshLabel.Text = "Последнее обновление: -";
+        SetApplicationIcon();
 
-        private void SetApplicationIcon()
+        _settings.LastUrl = _currentUrl;
+        _settingsService.Save(_settings);
+    }
+
+    private void InitializeRefreshTimer(LaunchOptions launchOptions)
+    {
+        _refreshTimer.Interval = SettingsService.ClampRefreshInterval(launchOptions.AutoRefreshIntervalSeconds) * 1000;
+        _refreshTimer.Tick += (_, _) => RefreshPageInternal("Auto refresh");
+    }
+
+    private void InitializeTray()
+    {
+        trayIcon.Icon = Icon ?? SystemIcons.Application;
+        trayIcon.Visible = true;
+    }
+
+    private async System.Threading.Tasks.Task InitializeBrowserAsync(LaunchOptions launchOptions)
+    {
+        try
         {
-            // Устанавливаем иконку приложения, если файл существует
-            try
+            await webView.EnsureCoreWebView2Async();
+            ConfigureWebView();
+            _isBrowserReady = true;
+            webView.CoreWebView2.Navigate(_currentUrl);
+            FileLogger.Info($"Opening URL: {_currentUrl}");
+            statusLabel.Text = "Загрузка страницы...";
+
+            if (launchOptions.StartFullscreen)
             {
-                // Пробуем найти иконку в разных местах
-                string[] possiblePaths = {
-                    "icon.ico",
-                    System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "icon.ico"),
-                    System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "icon.ico")
-                };
-
-                foreach (string path in possiblePaths)
-                {
-                    if (System.IO.File.Exists(path))
-                    {
-                        this.Icon = new Icon(path);
-                        break;
-                    }
-                }
-            }
-            catch
-            {
-                // Игнорируем ошибку, если иконка не найдена
-            }
-        }
-
-        private void InitializeRefreshTimer()
-        {
-            refreshTimer = new System.Windows.Forms.Timer();
-            refreshTimer.Interval = REFRESH_INTERVAL_SECONDS * 1000; // Конвертируем секунды в миллисекунды
-            refreshTimer.Tick += RefreshTimer_Tick;
-        }
-
-        private void RefreshTimer_Tick(object? sender, EventArgs e)
-        {
-            // Обновляем страницу, если не происходит навигация
-            if (!isNavigating && webView.CoreWebView2 != null)
-            {
-                webView.CoreWebView2.Reload();
-            }
-        }
-
-        private void ApplyDarkTheme()
-        {
-            // Темная тема для формы
-            this.BackColor = Color.FromArgb(30, 30, 30);
-            this.ForeColor = Color.White;
-            
-            // Темный фон для WebView2
-            webView.DefaultBackgroundColor = Color.FromArgb(30, 30, 30);
-        }
-
-        private async void InitializeBrowser()
-        {
-            try
-            {
-                // Инициализируем WebView2
-                await webView.EnsureCoreWebView2Async();
-
-                // Настраиваем обработчики событий
-                webView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
-                webView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
-                webView.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
-                webView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
-                webView.CoreWebView2.ServerCertificateErrorDetected += CoreWebView2_ServerCertificateErrorDetected;
-
-                // Настройки WebView2
-                webView.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;
-                webView.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
-                webView.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
-
-                // Загружаем сайт
-                webView.CoreWebView2.Navigate(baseUri.ToString());
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"Ошибка инициализации браузера: {ex.Message}\n\nУбедитесь, что установлен Microsoft Edge WebView2 Runtime.",
-                    "Ошибка",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-            }
-        }
-
-        private void CoreWebView2_NavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
-        {
-            isNavigating = true;
-            
-            // Блокируем навигацию на другие сайты
-            if (!IsUriWithinBase(e.Uri))
-            {
-                e.Cancel = true;
-                isNavigating = false;
-                MessageBox.Show(
-                    "Навигация на другие сайты заблокирована.\nРазрешено открывать только Zabbix монитор.",
-                    "Доступ ограничен",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
-                );
-            }
-        }
-
-        private void CoreWebView2_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
-        {
-            isNavigating = false;
-            
-            // Запускаем таймер обновления после успешной загрузки страницы
-            if (e.IsSuccess && refreshTimer != null && !refreshTimer.Enabled)
-            {
-                refreshTimer.Start();
-            }
-        }
-
-        private void CoreWebView2_NewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
-        {
-            // Блокируем открытие новых окон, но разрешаем навигацию внутри того же домена
-            if (IsUriWithinBase(e.Uri))
-            {
-                // Разрешаем навигацию внутри того же сайта
-                webView.CoreWebView2.Navigate(e.Uri);
-            }
-            e.Handled = true;
-        }
-
-        private void CoreWebView2_DocumentTitleChanged(object? sender, object e)
-        {
-            // Обновляем заголовок окна при изменении заголовка страницы
-            if (webView.CoreWebView2 != null && !string.IsNullOrEmpty(webView.CoreWebView2.DocumentTitle))
-            {
-                this.Invoke((MethodInvoker)delegate
-                {
-                    this.Text = $"Zabbix Monitor - {webView.CoreWebView2.DocumentTitle}";
-                });
-            }
-        }
-
-        private void CoreWebView2_ServerCertificateErrorDetected(object? sender, CoreWebView2ServerCertificateErrorDetectedEventArgs e)
-        {
-            // Игнорируем ошибки сертификатов для указанного сайта
-            if (IsUriWithinBase(e.RequestUri))
-            {
-                e.Action = CoreWebView2ServerCertificateErrorAction.AlwaysAllow;
-            }
-        }
-
-        protected override void OnFormClosing(FormClosingEventArgs e)
-        {
-            // Останавливаем таймер при закрытии формы
-            if (refreshTimer != null)
-            {
-                refreshTimer.Stop();
-                refreshTimer.Dispose();
-            }
-            base.OnFormClosing(e);
-        }
-
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
-        {
-            // Поддержка горячих клавиш для обновления страницы (F5 или Ctrl+R)
-            if (keyData == Keys.F5 || (keyData == (Keys.Control | Keys.R)))
-            {
-                if (webView.CoreWebView2 != null && !isNavigating)
-                {
-                    webView.CoreWebView2.Reload();
-                }
-                return true;
-            }
-            return base.ProcessCmdKey(ref msg, keyData);
-        }
-
-        private static Uri CreateBaseUri(string url)
-        {
-            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uri))
-            {
-                return new Uri("about:blank");
+                EnterFullscreen();
             }
 
-            if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+            if (launchOptions.StartMinimizedToTray)
             {
-                string absolute = uri.AbsoluteUri;
-                if (!absolute.EndsWith("/", StringComparison.Ordinal))
-                {
-                    absolute += "/";
-                }
-                return new Uri(absolute);
+                HideToTray();
             }
-
-            return uri;
         }
-
-        private bool IsUriWithinBase(string? candidateUri)
+        catch (WebView2RuntimeNotFoundException ex)
         {
-            if (string.IsNullOrWhiteSpace(candidateUri))
-            {
-                return false;
-            }
-
-            if (!Uri.TryCreate(candidateUri, UriKind.Absolute, out Uri? targetUri))
-            {
-                return false;
-            }
-
-            return targetUri.AbsoluteUri.StartsWith(baseUri.AbsoluteUri, StringComparison.OrdinalIgnoreCase);
+            FileLogger.Error("WebView2 Runtime is missing.", ex);
+            ShowFatalError("Не найден WebView2 Runtime. Установите Microsoft Edge WebView2 Runtime и перезапустите приложение.");
         }
+        catch (Exception ex)
+        {
+            FileLogger.Error("WebView2 initialization failed.", ex);
+            ShowFatalError($"Ошибка инициализации WebView2: {ex.Message}");
+        }
+    }
+
+    private void ConfigureWebView()
+    {
+        CoreWebView2 core = webView.CoreWebView2;
+        core.NavigationStarting += CoreWebView2_NavigationStarting;
+        core.NavigationCompleted += CoreWebView2_NavigationCompleted;
+        core.NewWindowRequested += CoreWebView2_NewWindowRequested;
+        core.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
+        core.ServerCertificateErrorDetected += CoreWebView2_ServerCertificateErrorDetected;
+        core.ProcessFailed += CoreWebView2_ProcessFailed;
+        core.DownloadStarting += CoreWebView2_DownloadStarting;
+
+        core.Settings.AreBrowserAcceleratorKeysEnabled = false;
+        core.Settings.AreDefaultContextMenusEnabled = false;
+        core.Settings.AreDefaultScriptDialogsEnabled = true;
+        core.Settings.IsPasswordAutosaveEnabled = false;
+        core.Settings.IsGeneralAutofillEnabled = false;
+        core.Settings.IsZoomControlEnabled = false;
+        core.Settings.IsStatusBarEnabled = false;
+    }
+
+    private void CoreWebView2_NavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
+    {
+        _isNavigating = true;
+        statusLabel.Text = "Загрузка...";
+
+        if (_navigationPolicy.IsAllowed(e.Uri))
+        {
+            return;
+        }
+
+        e.Cancel = true;
+        _isNavigating = false;
+        statusLabel.Text = "Переход заблокирован";
+        FileLogger.Warning($"Blocked navigation attempt: {e.Uri}");
+        MessageBox.Show(
+            "Переход на внешний домен запрещен политикой безопасности.",
+            "Навигация заблокирована",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Warning);
+    }
+
+    private void CoreWebView2_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    {
+        _isNavigating = false;
+        if (e.IsSuccess)
+        {
+            if (_settings.AutoRefreshEnabled && !_refreshTimer.Enabled)
+            {
+                _refreshTimer.Start();
+            }
+            statusLabel.Text = "Готово";
+            return;
+        }
+
+        string message = e.WebErrorStatus switch
+        {
+            CoreWebView2WebErrorStatus.CannotConnect => "Не удалось подключиться к сайту. Проверьте сеть и адрес.",
+            CoreWebView2WebErrorStatus.Timeout => "Превышено время ожидания ответа от сайта.",
+            CoreWebView2WebErrorStatus.HostNameNotResolved => "Не удалось определить адрес хоста.",
+            CoreWebView2WebErrorStatus.CertificateCommonNameIsIncorrect or
+                CoreWebView2WebErrorStatus.CertificateExpired or
+                CoreWebView2WebErrorStatus.CertificateIsInvalid => "Ошибка сертификата при подключении к сайту.",
+            _ => $"Ошибка загрузки страницы: {e.WebErrorStatus}"
+        };
+
+        statusLabel.Text = "Ошибка загрузки";
+        FileLogger.Warning($"Navigation failed: {e.WebErrorStatus}");
+        MessageBox.Show(message, "Ошибка загрузки", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    }
+
+    private void CoreWebView2_NewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
+    {
+        e.Handled = true;
+        FileLogger.Warning($"Blocked new window: {e.Uri}");
+        statusLabel.Text = "Всплывающее окно заблокировано";
+    }
+
+    private void CoreWebView2_DocumentTitleChanged(object? sender, object e)
+    {
+        if (webView.CoreWebView2 is null)
+        {
+            return;
+        }
+
+        string pageTitle = string.IsNullOrWhiteSpace(webView.CoreWebView2.DocumentTitle)
+            ? "Zabbix"
+            : webView.CoreWebView2.DocumentTitle;
+        Text = $"Zabbix Monitor - {pageTitle}";
+    }
+
+    private void CoreWebView2_ServerCertificateErrorDetected(object? sender, CoreWebView2ServerCertificateErrorDetectedEventArgs e)
+    {
+        e.Action = CoreWebView2ServerCertificateErrorAction.Cancel;
+        FileLogger.Warning($"Certificate error: {e.ErrorStatus} for {e.RequestUri}");
+        statusLabel.Text = "Ошибка сертификата";
+        MessageBox.Show(
+            "Обнаружена ошибка сертификата. Загрузка страницы остановлена.",
+            "Ошибка сертификата",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error);
+    }
+
+    private void CoreWebView2_ProcessFailed(object? sender, CoreWebView2ProcessFailedEventArgs e)
+    {
+        FileLogger.Error($"WebView2 process failed: {e.ProcessFailedKind}");
+        statusLabel.Text = "Ошибка процесса WebView2";
+    }
+
+    private void CoreWebView2_DownloadStarting(object? sender, CoreWebView2DownloadStartingEventArgs e)
+    {
+        e.Cancel = true;
+        FileLogger.Warning($"Blocked file download: {e.ResultFilePath}");
+        statusLabel.Text = "Скачивание заблокировано";
+    }
+
+    private void RefreshPageInternal(string source)
+    {
+        if (!_isBrowserReady || webView.CoreWebView2 is null || _isNavigating)
+        {
+            return;
+        }
+
+        webView.CoreWebView2.Reload();
+        string timestamp = DateTime.Now.ToString("HH:mm:ss");
+        lastRefreshLabel.Text = $"Последнее обновление: {timestamp}";
+        statusLabel.Text = "Обновление страницы...";
+        FileLogger.Info($"{source}: page reload at {timestamp}");
+    }
+
+    private void SetApplicationIcon()
+    {
+        string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "icon.ico");
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        Icon = new Icon(path);
+    }
+
+    protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+    {
+        if (keyData == Keys.F5 || keyData == (Keys.Control | Keys.R))
+        {
+            RefreshPageInternal("Manual refresh");
+            return true;
+        }
+
+        if (keyData == Keys.F11)
+        {
+            ToggleFullscreen();
+            return true;
+        }
+
+        if (keyData == Keys.Escape && _isFullscreen)
+        {
+            ExitFullscreen();
+            return true;
+        }
+
+        return base.ProcessCmdKey(ref msg, keyData);
+    }
+
+    private void ToggleFullscreen()
+    {
+        if (_isFullscreen)
+        {
+            ExitFullscreen();
+        }
+        else
+        {
+            EnterFullscreen();
+        }
+    }
+
+    private void EnterFullscreen()
+    {
+        if (_isFullscreen)
+        {
+            return;
+        }
+
+        _savedBorderStyle = FormBorderStyle;
+        _savedWindowState = WindowState;
+        _savedBounds = Bounds;
+
+        FormBorderStyle = FormBorderStyle.None;
+        WindowState = FormWindowState.Normal;
+        Bounds = Screen.FromControl(this).Bounds;
+        _isFullscreen = true;
+        fullscreenButton.Text = "Выход из Fullscreen";
+    }
+
+    private void ExitFullscreen()
+    {
+        if (!_isFullscreen)
+        {
+            return;
+        }
+
+        FormBorderStyle = _savedBorderStyle;
+        Bounds = _savedBounds;
+        WindowState = _savedWindowState;
+        _isFullscreen = false;
+        fullscreenButton.Text = "Fullscreen";
+    }
+
+    private void HideToTray()
+    {
+        Hide();
+        ShowInTaskbar = false;
+        WindowState = FormWindowState.Minimized;
+        statusLabel.Text = "Свернуто в трей";
+    }
+
+    private void RestoreFromTray()
+    {
+        Show();
+        ShowInTaskbar = true;
+        WindowState = FormWindowState.Normal;
+        Activate();
+    }
+
+    private void ShowSettings()
+    {
+        using var settingsForm = new StartForm(_settingsService, _settings);
+        if (settingsForm.ShowDialog() != DialogResult.OK || settingsForm.Result is null)
+        {
+            return;
+        }
+
+        _refreshTimer.Interval = SettingsService.ClampRefreshInterval(_settings.AutoRefreshIntervalSeconds) * 1000;
+        if (_settings.AutoRefreshEnabled && !_refreshTimer.Enabled)
+        {
+            _refreshTimer.Start();
+        }
+        else if (!_settings.AutoRefreshEnabled && _refreshTimer.Enabled)
+        {
+            _refreshTimer.Stop();
+        }
+
+        if (!string.Equals(_currentUrl, settingsForm.Result.Url, StringComparison.OrdinalIgnoreCase) &&
+            webView.CoreWebView2 is not null)
+        {
+            _currentUrl = settingsForm.Result.Url;
+            _navigationPolicy = BuildNavigationPolicy(_currentUrl);
+            webView.CoreWebView2.Navigate(settingsForm.Result.Url);
+            FileLogger.Info($"Navigate to new URL from settings: {settingsForm.Result.Url}");
+        }
+
+        if (_settings.StartInFullscreen && !_isFullscreen)
+        {
+            EnterFullscreen();
+        }
+        else if (!_settings.StartInFullscreen && _isFullscreen)
+        {
+            ExitFullscreen();
+        }
+    }
+
+    private void ShowFatalError(string message)
+    {
+        MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        _isExitRequested = true;
+        Close();
+    }
+
+    private void refreshButton_Click(object sender, EventArgs e) => RefreshPageInternal("Manual button refresh");
+    private void fullscreenButton_Click(object sender, EventArgs e) => ToggleFullscreen();
+    private void openSettingsButton_Click(object sender, EventArgs e) => ShowSettings();
+    private void trayOpenMenuItem_Click(object sender, EventArgs e) => RestoreFromTray();
+    private void trayRefreshMenuItem_Click(object sender, EventArgs e) => RefreshPageInternal("Tray refresh");
+    private void traySettingsMenuItem_Click(object sender, EventArgs e) => ShowSettings();
+    private void trayExitMenuItem_Click(object sender, EventArgs e)
+    {
+        _isExitRequested = true;
+        Close();
+    }
+
+    private void trayIcon_DoubleClick(object sender, EventArgs e) => RestoreFromTray();
+
+    private void MainForm_Resize(object sender, EventArgs e)
+    {
+        if (_settings.MinimizeToTray && WindowState == FormWindowState.Minimized && !_isExitRequested)
+        {
+            HideToTray();
+        }
+    }
+
+    private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        if (!_isExitRequested && _settings.MinimizeToTray && e.CloseReason == CloseReason.UserClosing)
+        {
+            e.Cancel = true;
+            HideToTray();
+            return;
+        }
+
+        trayIcon.Visible = false;
+        trayIcon.Dispose();
+        _refreshTimer.Stop();
+        _refreshTimer.Dispose();
+        UnsubscribeWebViewEvents();
+        FileLogger.Info("Application shutdown.");
+    }
+
+    private NavigationPolicy BuildNavigationPolicy(string url) => new([url]);
+
+    private void UnsubscribeWebViewEvents()
+    {
+        if (webView.CoreWebView2 is null)
+        {
+            return;
+        }
+
+        CoreWebView2 core = webView.CoreWebView2;
+        core.NavigationStarting -= CoreWebView2_NavigationStarting;
+        core.NavigationCompleted -= CoreWebView2_NavigationCompleted;
+        core.NewWindowRequested -= CoreWebView2_NewWindowRequested;
+        core.DocumentTitleChanged -= CoreWebView2_DocumentTitleChanged;
+        core.ServerCertificateErrorDetected -= CoreWebView2_ServerCertificateErrorDetected;
+        core.ProcessFailed -= CoreWebView2_ProcessFailed;
+        core.DownloadStarting -= CoreWebView2_DownloadStarting;
     }
 }
 
