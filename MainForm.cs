@@ -23,7 +23,8 @@ public partial class MainForm : Form
     private FormWindowState _savedWindowState;
     private Rectangle _savedBounds;
     private string _currentUrl;
-    private float _savedTopRowHeight = 44F;
+    private const float CompactTopRowHeight = 34F;
+    private float _savedTopRowHeight = 40F;
     private float _savedStatusRowHeight = 24F;
 
     public MainForm(SettingsService settingsService, AppSettings settings, LaunchOptions launchOptions)
@@ -319,6 +320,7 @@ public partial class MainForm : Form
 
             topPanel.Visible = true;
             statusStrip.Visible = true;
+            openSettingsButton.Visible = true;
             return;
         }
 
@@ -326,12 +328,13 @@ public partial class MainForm : Form
         {
             _savedTopRowHeight = mainLayout.RowStyles[0].Height > 0 ? mainLayout.RowStyles[0].Height : _savedTopRowHeight;
             _savedStatusRowHeight = mainLayout.RowStyles[2].Height > 0 ? mainLayout.RowStyles[2].Height : _savedStatusRowHeight;
-            mainLayout.RowStyles[0].Height = 0;
+            mainLayout.RowStyles[0].Height = CompactTopRowHeight;
             mainLayout.RowStyles[2].Height = 0;
         }
 
-        topPanel.Visible = false;
+        topPanel.Visible = true;
         statusStrip.Visible = false;
+        openSettingsButton.Visible = false;
     }
 
     private void EnsureMainToolbarVisible()
