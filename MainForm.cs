@@ -23,6 +23,8 @@ public partial class MainForm : Form
     private FormWindowState _savedWindowState;
     private Rectangle _savedBounds;
     private string _currentUrl;
+    private float _savedTopRowHeight = 44F;
+    private float _savedStatusRowHeight = 24F;
 
     public MainForm(SettingsService settingsService, AppSettings settings, LaunchOptions launchOptions)
     {
@@ -284,8 +286,7 @@ public partial class MainForm : Form
         WindowState = FormWindowState.Normal;
         Bounds = Screen.FromControl(this).Bounds;
         _isFullscreen = true;
-        topPanel.Visible = false;
-        statusStrip.Visible = false;
+        SetChromeVisibility(false);
         fullscreenButton.Text = "Окно";
     }
 
@@ -300,9 +301,35 @@ public partial class MainForm : Form
         Bounds = _savedBounds;
         WindowState = _savedWindowState;
         _isFullscreen = false;
-        topPanel.Visible = true;
-        statusStrip.Visible = true;
+        SetChromeVisibility(true);
         fullscreenButton.Text = "Полный экран";
+    }
+
+    private void SetChromeVisibility(bool visible)
+    {
+        if (visible)
+        {
+            if (mainLayout.RowStyles.Count >= 3)
+            {
+                mainLayout.RowStyles[0].Height = _savedTopRowHeight;
+                mainLayout.RowStyles[2].Height = _savedStatusRowHeight;
+            }
+
+            topPanel.Visible = true;
+            statusStrip.Visible = true;
+            return;
+        }
+
+        if (mainLayout.RowStyles.Count >= 3)
+        {
+            _savedTopRowHeight = mainLayout.RowStyles[0].Height > 0 ? mainLayout.RowStyles[0].Height : _savedTopRowHeight;
+            _savedStatusRowHeight = mainLayout.RowStyles[2].Height > 0 ? mainLayout.RowStyles[2].Height : _savedStatusRowHeight;
+            mainLayout.RowStyles[0].Height = 0;
+            mainLayout.RowStyles[2].Height = 0;
+        }
+
+        topPanel.Visible = false;
+        statusStrip.Visible = false;
     }
 
     private void HideToTray()

@@ -4,7 +4,6 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <UseWPF>false</UseWPF>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -33,6 +32,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2957.106" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Keep project WinForms-only: exclude WPF WebView2 assembly to avoid WindowsBase conflicts -->
+    <Reference Remove="Microsoft.Web.WebView2.Wpf" />
   </ItemGroup>
 
 </Project>

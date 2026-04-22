@@ -46,8 +46,8 @@ public sealed class StartForm : Form
         MaximizeBox = false;
         MinimizeBox = false;
         Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        ClientSize = new Size(680, 500);
-        MinimumSize = new Size(680, 500);
+        ClientSize = new Size(720, 560);
+        MinimumSize = new Size(720, 560);
         AutoScroll = true;
         Padding = new Padding(12);
 
