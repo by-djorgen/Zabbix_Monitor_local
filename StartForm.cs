@@ -46,9 +46,8 @@ public sealed class StartForm : Form
         MaximizeBox = false;
         MinimizeBox = false;
         Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        ClientSize = new Size(720, 560);
-        MinimumSize = new Size(720, 560);
-        AutoScroll = true;
+        ClientSize = new Size(640, 430);
+        MinimumSize = new Size(640, 430);
         Padding = new Padding(12);
 
         var rootLayout = new TableLayoutPanel
@@ -57,6 +56,7 @@ public sealed class StartForm : Form
             ColumnCount = 1,
             RowCount = 4
         };
+        rootLayout.Margin = new Padding(0);
         rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -66,7 +66,8 @@ public sealed class StartForm : Form
         {
             Dock = DockStyle.Fill,
             Text = "URL и профили",
-            Padding = new Padding(10, 12, 10, 10)
+            Padding = new Padding(10, 12, 10, 10),
+            Margin = new Padding(0, 0, 0, 8)
         };
         var profileLayout = new TableLayoutPanel
         {
@@ -113,7 +114,8 @@ public sealed class StartForm : Form
         {
             Dock = DockStyle.Fill,
             Text = "Режим запуска",
-            Padding = new Padding(10, 10, 10, 8)
+            Padding = new Padding(10, 10, 10, 8),
+            Margin = new Padding(0, 0, 0, 8)
         };
         var startupLayout = new TableLayoutPanel
         {
@@ -157,7 +159,8 @@ public sealed class StartForm : Form
         {
             Dock = DockStyle.Fill,
             Text = "Обновление",
-            Padding = new Padding(10, 10, 10, 8)
+            Padding = new Padding(10, 10, 10, 8),
+            Margin = new Padding(0, 0, 0, 8)
         };
         var refreshLayout = new FlowLayoutPanel
         {
@@ -206,7 +209,8 @@ public sealed class StartForm : Form
             Dock = DockStyle.Fill,
             FlowDirection = FlowDirection.RightToLeft,
             WrapContents = false,
-            Padding = new Padding(0, 6, 0, 0)
+            Padding = new Padding(0, 2, 0, 0),
+            Margin = new Padding(0)
         };
         actionsLayout.Controls.Add(_openButton);
         actionsLayout.Controls.Add(_cancelButton);
