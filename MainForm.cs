@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
 using ZabbixMonitor.Models;
 using ZabbixMonitor.Services;
+using FormsTimer = System.Windows.Forms.Timer;
 
 namespace ZabbixMonitor;
 
@@ -13,7 +14,7 @@ public partial class MainForm : Form
     private readonly SettingsService _settingsService;
     private readonly AppSettings _settings;
     private NavigationPolicy _navigationPolicy;
-    private readonly Timer _refreshTimer = new();
+    private readonly FormsTimer _refreshTimer = new();
     private bool _isNavigating;
     private bool _isBrowserReady;
     private bool _isFullscreen;
