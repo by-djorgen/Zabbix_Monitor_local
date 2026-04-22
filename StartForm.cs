@@ -55,12 +55,11 @@ public sealed class StartForm : Form
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
-            RowCount = 5
+            RowCount = 4
         };
         rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        rootLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
         var profileGroup = new GroupBox
@@ -215,8 +214,7 @@ public sealed class StartForm : Form
         rootLayout.Controls.Add(profileGroup, 0, 0);
         rootLayout.Controls.Add(startupGroup, 0, 1);
         rootLayout.Controls.Add(refreshGroup, 0, 2);
-        rootLayout.Controls.Add(new Panel { Dock = DockStyle.Fill, MinimumSize = new Size(1, 8) }, 0, 3);
-        rootLayout.Controls.Add(actionsLayout, 0, 4);
+        rootLayout.Controls.Add(actionsLayout, 0, 3);
         Controls.Add(rootLayout);
 
         AcceptButton = _openButton;

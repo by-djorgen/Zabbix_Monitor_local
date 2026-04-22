@@ -46,6 +46,7 @@ public partial class MainForm : Form
         statusLabel.Text = "Инициализация WebView2...";
         lastRefreshLabel.Text = "Последнее обновление: -";
         SetApplicationIcon();
+        EnsureMainToolbarVisible();
 
         _settings.LastUrl = _currentUrl;
         _settingsService.Save(_settings);
@@ -302,6 +303,7 @@ public partial class MainForm : Form
         WindowState = _savedWindowState;
         _isFullscreen = false;
         SetChromeVisibility(true);
+        EnsureMainToolbarVisible();
         fullscreenButton.Text = "Полный экран";
     }
 
@@ -330,6 +332,22 @@ public partial class MainForm : Form
 
         topPanel.Visible = false;
         statusStrip.Visible = false;
+    }
+
+    private void EnsureMainToolbarVisible()
+    {
+        if (mainLayout.RowStyles.Count >= 1 && mainLayout.RowStyles[0].Height <= 0)
+        {
+            mainLayout.RowStyles[0].Height = 40F;
+        }
+
+        topPanel.Visible = true;
+        refreshButton.Visible = true;
+        refreshButton.Enabled = true;
+        fullscreenButton.Visible = true;
+        fullscreenButton.Enabled = true;
+        refreshButton.BringToFront();
+        fullscreenButton.BringToFront();
     }
 
     private void HideToTray()

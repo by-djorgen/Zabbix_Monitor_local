@@ -48,9 +48,10 @@ namespace ZabbixMonitor
             this.mainLayout.Controls.Add(this.statusStrip, 0, 2);
             this.mainLayout.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainLayout.Location = new System.Drawing.Point(0, 0);
+            this.mainLayout.Margin = new System.Windows.Forms.Padding(0);
             this.mainLayout.Name = "mainLayout";
             this.mainLayout.RowCount = 3;
-            this.mainLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
+            this.mainLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
             this.mainLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.mainLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 24F));
             this.mainLayout.Size = new System.Drawing.Size(1400, 900);
@@ -63,15 +64,16 @@ namespace ZabbixMonitor
             this.topPanel.Controls.Add(this.fullscreenButton);
             this.topPanel.Controls.Add(this.refreshButton);
             this.topPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.topPanel.Location = new System.Drawing.Point(3, 3);
+            this.topPanel.Location = new System.Drawing.Point(0, 0);
+            this.topPanel.Margin = new System.Windows.Forms.Padding(0);
             this.topPanel.Name = "topPanel";
-            this.topPanel.Size = new System.Drawing.Size(1394, 38);
+            this.topPanel.Size = new System.Drawing.Size(1400, 40);
             this.topPanel.TabIndex = 0;
             // 
             // openSettingsButton
             // 
             this.openSettingsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.openSettingsButton.Location = new System.Drawing.Point(1281, 6);
+            this.openSettingsButton.Location = new System.Drawing.Point(1287, 7);
             this.openSettingsButton.Name = "openSettingsButton";
             this.openSettingsButton.Size = new System.Drawing.Size(105, 26);
             this.openSettingsButton.TabIndex = 2;
@@ -81,7 +83,8 @@ namespace ZabbixMonitor
             // 
             // fullscreenButton
             // 
-            this.fullscreenButton.Location = new System.Drawing.Point(123, 6);
+            this.fullscreenButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.fullscreenButton.Location = new System.Drawing.Point(123, 7);
             this.fullscreenButton.Name = "fullscreenButton";
             this.fullscreenButton.Size = new System.Drawing.Size(111, 26);
             this.fullscreenButton.TabIndex = 1;
@@ -91,7 +94,8 @@ namespace ZabbixMonitor
             // 
             // refreshButton
             // 
-            this.refreshButton.Location = new System.Drawing.Point(9, 6);
+            this.refreshButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.refreshButton.Location = new System.Drawing.Point(9, 7);
             this.refreshButton.Name = "refreshButton";
             this.refreshButton.Size = new System.Drawing.Size(105, 26);
             this.refreshButton.TabIndex = 0;
@@ -107,6 +111,7 @@ namespace ZabbixMonitor
             this.statusSpring,
             this.lastRefreshLabel});
             this.statusStrip.Location = new System.Drawing.Point(0, 876);
+            this.statusStrip.Margin = new System.Windows.Forms.Padding(0);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Size = new System.Drawing.Size(1400, 24);
             this.statusStrip.TabIndex = 2;
@@ -136,9 +141,10 @@ namespace ZabbixMonitor
             this.webView.CreationProperties = null;
             this.webView.DefaultBackgroundColor = System.Drawing.Color.White;
             this.webView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.webView.Location = new System.Drawing.Point(3, 47);
+            this.webView.Location = new System.Drawing.Point(0, 40);
+            this.webView.Margin = new System.Windows.Forms.Padding(0);
             this.webView.Name = "webView";
-            this.webView.Size = new System.Drawing.Size(1394, 826);
+            this.webView.Size = new System.Drawing.Size(1400, 836);
             this.webView.TabIndex = 1;
             this.webView.ZoomFactor = 1.0D;
             // 
